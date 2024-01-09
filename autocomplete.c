@@ -297,7 +297,7 @@ int x264_cli_autocomplete( const char *prev, const char *cur )
     OPT( "--alternative-transfer" )
         suggest_list( x264_transfer_names );
     OPT( "--aq-mode" )
-        suggest_num_range( 0, 3 );
+        suggest_num_range( 0, 4 );
     OPT( "--asm" )
         for( const x264_cpu_name_t *cpu = x264_cpu_names; cpu->flags; cpu++ )
             suggest_lower( cpu->name );

@@ -748,7 +748,8 @@ static void help( x264_param_t *defaults, int longhelp )
         "                                  - 0: Disabled\n"
         "                                  - 1: Variance AQ (complexity mask)\n"
         "                                  - 2: Auto-variance AQ\n"
-        "                                  - 3: Auto-variance AQ with bias to dark scenes\n", defaults->rc.i_aq_mode );
+        "                                  - 3: Auto-variance AQ with bias to dark scenes\n"
+        "                                  - 4: Custom AQ\n", defaults->rc.i_aq_mode );
     H1( "      --aq-strength <float>   Reduces blocking and blurring in flat and\n"
         "                              textured areas. [%.1f]\n", defaults->rc.f_aq_strength );
     H1( "\n" );

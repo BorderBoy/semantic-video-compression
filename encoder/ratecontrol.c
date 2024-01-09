@@ -396,8 +396,27 @@ void x264_adaptive_quant_frame( x264_t *h, x264_frame_t *frame, float *quant_off
                 }
                 if( quant_offsets )
                     qp_adj += quant_offsets[mb_xy];
-                frame->f_qp_offset[mb_xy] =
-                frame->f_qp_offset_aq[mb_xy] = qp_adj;
+                // if(mb_x > h->mb.i_mb_width/6 ){
+                //     frame->f_qp_offset[mb_xy] =
+                //     frame->f_qp_offset_aq[mb_xy] = 30+qp_adj;
+                // } else {
+                //     frame->f_qp_offset[mb_xy] =
+                //     frame->f_qp_offset_aq[mb_xy] = qp_adj;
+                // }
+                if(h->param.rc.i_aq_mode == X264_AQ_CUSTOM) {
+                    if(mb_x > h->mb.i_mb_width *  1/4 && mb_x < h->mb.i_mb_width *  3/4 && 
+                        mb_y > h->mb.i_mb_height * 1/4 && mb_y < h->mb.i_mb_height * 3/4){
+                        frame->f_qp_offset[mb_xy] =
+                        frame->f_qp_offset_aq[mb_xy] = qp_adj;
+                    } else {
+                        frame->f_qp_offset[mb_xy] =
+                        frame->f_qp_offset_aq[mb_xy] = 30+qp_adj;
+                    }
+                } else {
+                    frame->f_qp_offset[mb_xy] =
+                    frame->f_qp_offset_aq[mb_xy] = qp_adj;
+                }
+
                 if( h->frames.b_have_lowres )
                     frame->i_inv_qscale_factor[mb_xy] = x264_exp2fix8(qp_adj);
             }
