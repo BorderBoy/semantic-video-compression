@@ -21,6 +21,8 @@
  *
  * This program is also available under a commercial proprietary license.
  * For more information, contact us at licensing@x264.com.
+ * 
+ * Changed by Jonas Goos, 2024-01-15
  *****************************************************************************/
 
 #include "x264cli.h"

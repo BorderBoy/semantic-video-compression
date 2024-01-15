@@ -23,6 +23,8 @@
  *
  * This program is also available under a commercial proprietary license.
  * For more information, contact us at licensing@x264.com.
+ *
+ * Changed by Jonas Goos, 2024-01-15
  *****************************************************************************/
 
 #ifndef X264_X264_H
