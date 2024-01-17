@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "ratecontrol.h": "c",
+        "common.h": "c"
+    },
+    "workbench.colorTheme": "Default Dark+"
+}

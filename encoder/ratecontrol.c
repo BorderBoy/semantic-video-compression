@@ -34,6 +34,7 @@
 #include "common/common.h"
 #include "ratecontrol.h"
 #include "me.h"
+#include "roi_detection/roi_detection.h"
 
 typedef struct
 {
@@ -305,6 +306,10 @@ static NOINLINE uint32_t ac_energy_mb( x264_t *h, int mb_x, int mb_y, x264_frame
 
 void x264_adaptive_quant_frame( x264_t *h, x264_frame_t *frame, float *quant_offsets )
 {
+    pixel *roi_map = (pixel*) malloc(10);
+    int jo = detect_roi(frame, roi_map);
+    free(roi_map);
+
     /* Initialize frame stats */
     for( int i = 0; i < 3; i++ )
     {
