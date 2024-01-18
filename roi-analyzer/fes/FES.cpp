@@ -2,6 +2,35 @@
 
 using namespace cv;
 using namespace std;
+
+FES::FES() {
+    string priorPath  = "../prior.yml";
+    FileStorage fs( priorPath, FileStorage::READ);
+    fs["p1"] >> prior;
+    fs.release();
+}
+
+void FES::computeROI(Mat& img, Mat& roiMap) {
+    Mat floatImg;
+    img.convertTo(floatImg, CV_32F, 1/255.0);
+
+    Mat labImg;
+    labImg.create(img.size(), CV_32FC3);
+    cvtColor(floatImg, labImg, COLOR_BGR2Lab);
+
+    roiMap = computeFinalSaliency(labImg, {8,8,8}, {13, 25, 28}, 30, 10, 1, this->prior);
+
+    resize(roiMap, roiMap, roiMap.size() / 16);
+
+    roiMap.convertTo(roiMap, CV_8U, 255);
+    // threshold(roiMap, roiMap, 100, 255, THRESH_BINARY);
+
+    // Mat kernelFES = getStructuringElement(MORPH_RECT, Size(10, 10));
+    // morphologyEx(roiMap, roiMap, MORPH_ERODE, kernelFES);
+    // kernelFES = getStructuringElement(MORPH_RECT, Size(15, 15));
+    // morphologyEx(roiMap, roiMap, MORPH_DILATE, kernelFES);
+}
+
 // compute multi scale saliency over an image 
 //
 // @input
@@ -31,7 +60,7 @@ using namespace std;
 // @Contact Email: hrezazad@ee.oulu.fi
 // @date  : 2010
 // @version: 0.1
-Mat computeFinalSaliency(const Mat& img, vector<int> pScale, vector<float> sScale, float alpha, float sigma0, float sigma1, const Mat& p1) {
+Mat FES::computeFinalSaliency(const Mat& img, vector<int> pScale, vector<float> sScale, float alpha, float sigma0, float sigma1, const Mat& p1) {
     Size imgSize = img.size();
 
     Mat resizedImg;
@@ -108,7 +137,7 @@ Mat computeFinalSaliency(const Mat& img, vector<int> pScale, vector<float> sScal
 // @Contact Email: hrezazad@ee.oulu.fi
 // @date  : 2010
 // @version: 0.1
-Mat calculateImageSaliency(const Mat& img, int nSample, float radius, float sigma0, float sigma1, const Mat& ph1) {
+Mat FES::calculateImageSaliency(const Mat& img, int nSample, float radius, float sigma0, float sigma1, const Mat& ph1) {
     int nrow = img.rows;
     int ncol = img.cols;
     int nChannel = img.channels();
@@ -191,14 +220,14 @@ Mat calculateImageSaliency(const Mat& img, int nSample, float radius, float sigm
     return saliency;
 }
 
-void printVec(Mat vec, int rows){
+void FES::printVec(Mat vec, int rows){
     for(int i = 0; i < rows; i++){
         cout << vec.at<int>(i) << " ";
     }
     cout << endl;
 }
 
-void printMat(Mat mat, string name){
+void FES::printMat(Mat mat, string name){
     cout << name << ": ",
     cout << "size: " << mat.rows << "x" << mat.cols << "x" << mat.channels();
     cout << ", type: " << mat.type() <<  endl;
@@ -222,5 +251,4 @@ void printMat(Mat mat, string name){
         default:
             cout << "unknown type" << endl;
     }
-
 }

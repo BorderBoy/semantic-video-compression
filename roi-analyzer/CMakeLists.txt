@@ -1,31 +1,33 @@
 cmake_minimum_required(VERSION 3.28)
 
-project( BING )
+project( ROI-Detector )
 
 find_package( OpenCV REQUIRED )
 find_package( ZeroMQ REQUIRED )
 find_package( cppzmq REQUIRED )
 
 include_directories(
-    ${OpenCV_INCLUDE_DIRS}
-    "/Applications/MATLAB/MATLAB_Runtime/R2023b/extern/include")
+    ${OpenCV_INCLUDE_DIRS})
 
 set(HEADERS
-    FES.h
+    fes/FES.h
     facedetection/facedetectcnn.h
+    facedetection/facedetection.h
+    ROIDetector.h
 )
 
 set(SOURCES
-    FES.cpp
     main.cpp
+    fes/FES.cpp
     facedetection/facedetectcnn.cpp
     facedetection/facedetectcnn-data.cpp
     facedetection/facedetectcnn-model.cpp
+    facedetection/facedetection.cpp
 )
 
-add_executable( BING ${HEADERS} ${SOURCES} )
+add_executable( ROI-Detector ${HEADERS} ${SOURCES} )
 
 target_link_libraries(
-    BING
+    ROI-Detector
     cppzmq
     ${OpenCV_LIBS})
