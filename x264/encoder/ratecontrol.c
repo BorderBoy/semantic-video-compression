@@ -306,10 +306,6 @@ static NOINLINE uint32_t ac_energy_mb( x264_t *h, int mb_x, int mb_y, x264_frame
 
 void x264_adaptive_quant_frame( x264_t *h, x264_frame_t *frame, float *quant_offsets )
 {
-    pixel *roi_map = (pixel*) malloc(10);
-    int jo = detect_roi(frame, roi_map);
-    free(roi_map);
-
     /* Initialize frame stats */
     for( int i = 0; i < 3; i++ )
     {
@@ -353,6 +349,17 @@ void x264_adaptive_quant_frame( x264_t *h, x264_frame_t *frame, float *quant_off
     /* Actual adaptive quantization */
     else
     {
+        // Get ROI map when mode is AQ_CUSTOM
+        pixel* roi_map;
+        int custom_max_offset = 30;
+        if(h->param.rc.i_aq_mode == X264_AQ_CUSTOM){
+            roi_map = (pixel*) malloc(frame->i_lines[0]/16 * frame->i_width[0]/16);
+            if(detect_roi(frame, roi_map) != 0){
+                x264_log( "x264", X264_LOG_ERROR, "cannot connect to roi detection server\n" );
+                exit(1);
+            }
+        }
+
         /* constants chosen to result in approximately the same overall bitrate as without AQ.
          * FIXME: while they're written in 5 significant digits, they're only tuned to 2. */
         float strength;
@@ -403,22 +410,12 @@ void x264_adaptive_quant_frame( x264_t *h, x264_frame_t *frame, float *quant_off
                 }
                 if( quant_offsets )
                     qp_adj += quant_offsets[mb_xy];
-                // if(mb_x > h->mb.i_mb_width/6 ){
-                //     frame->f_qp_offset[mb_xy] =
-                //     frame->f_qp_offset_aq[mb_xy] = 30+qp_adj;
-                // } else {
-                //     frame->f_qp_offset[mb_xy] =
-                //     frame->f_qp_offset_aq[mb_xy] = qp_adj;
-                // }
+
                 if(h->param.rc.i_aq_mode == X264_AQ_CUSTOM) {
-                    if(mb_x > h->mb.i_mb_width *  1/4 && mb_x < h->mb.i_mb_width *  3/4 && 
-                        mb_y > h->mb.i_mb_height * 1/4 && mb_y < h->mb.i_mb_height * 3/4){
-                        frame->f_qp_offset[mb_xy] =
-                        frame->f_qp_offset_aq[mb_xy] = qp_adj;
-                    } else {
-                        frame->f_qp_offset[mb_xy] =
-                        frame->f_qp_offset_aq[mb_xy] = 30+qp_adj;
-                    }
+                    int offset = (255 - roi_map[mb_y * h->mb.i_mb_width + mb_x])/255 * custom_max_offset;
+                    
+                    frame->f_qp_offset[mb_xy] =
+                    frame->f_qp_offset_aq[mb_xy] = offset+qp_adj;
                 } else {
                     frame->f_qp_offset[mb_xy] =
                     frame->f_qp_offset_aq[mb_xy] = qp_adj;
@@ -427,6 +424,10 @@ void x264_adaptive_quant_frame( x264_t *h, x264_frame_t *frame, float *quant_off
                 if( h->frames.b_have_lowres )
                     frame->i_inv_qscale_factor[mb_xy] = x264_exp2fix8(qp_adj);
             }
+
+        if(h->param.rc.i_aq_mode == X264_AQ_CUSTOM){
+            free(roi_map);
+        }
     }
 
     /* Remove mean from SSD calculation */
