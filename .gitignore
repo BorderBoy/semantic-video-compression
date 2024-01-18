@@ -1,50 +1,37 @@
-*~
-*.a
-*.diff
-*.orig
-*.rej
-*.dll*
-*.exe
-*.def
-*.lib
-*.pdb
-*.mo
-*.o
-*.patch
-*.pc
-*.pot
-*.so*
-*.dylib
-.*.swp
-.depend
+# Created by https://www.toptal.com/developers/gitignore/api/macos
+# Edit at https://www.toptal.com/developers/gitignore?templates=macos
+
+### macOS ###
+# General
 .DS_Store
-TAGS
-config.h
-config.mak
-config.log
-x264_config.h
-x264
-checkasm
+.AppleDouble
+.LSOverride
 
-*.264
-*.h264
-*.2pass
-*.ffindex
-*.avs
-*.mkv
-*.flv
-*.mp4
-*.y4m
-*.yuv
-*.log
-*.mbtree
-*.temp
-*.pyc
-*.pgd
-*.pgc
+# Icon must end with two \r
+Icon
 
-.digress_x264
-dataDec.txt
-log.dec
-common/oclobj.h
-x264_lookahead.clbin
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+### macOS Patch ###
+# iCloud generated files
+*.icloud
+
+# End of https://www.toptal.com/developers/gitignore/api/macos
