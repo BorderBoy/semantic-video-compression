@@ -55,7 +55,7 @@ Mat readMatFromSocket(zmq::socket_t *sock) {
 
 void startServer(){
     // Init ROI detector
-    // ROI* ROI = new FaceDetection();
+    // ROIDetector* ROI = new FaceDetection();
     ROIDetector* ROI = new FES();
     
     //  Socket to talk to clients
@@ -73,8 +73,8 @@ void startServer(){
 
         ROI->computeROI(img, img);
 
-        imshow("Display Image", img);
-        waitKey(1);
+        // imshow("Display Image", img);
+        // waitKey(1);
         
         if(!img.isContinuous()){
             std::cout << "Image is not continuous" << std::endl;

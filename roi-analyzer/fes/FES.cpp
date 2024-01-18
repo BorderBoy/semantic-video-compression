@@ -66,11 +66,6 @@ Mat FES::computeFinalSaliency(const Mat& img, vector<int> pScale, vector<float> 
     Mat resizedImg;
     resize(img, resizedImg, Size(171, 128));
 
-    // string imagePath  = "../img-lab-resized.yml";
-    // FileStorage fsDemo( imagePath, FileStorage::READ);
-    // fsDemo["img"] >> resizedImg;
-    // fsDemo.release();
-
     if (p1.rows != 128 || p1.cols != 171 || p1.channels() != 1) {
         cout << "p1 must be 128x171x1" << endl;
         exit(1);
