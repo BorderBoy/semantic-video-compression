@@ -20,7 +20,7 @@ void FES::computeROI(Mat& img, Mat& roiMap) {
 
     roiMap = computeFinalSaliency(labImg, {8,8,8}, {13, 25, 28}, 30, 10, 1, this->prior);
 
-    resize(roiMap, roiMap, roiMap.size() / 16);
+    resize(roiMap, roiMap, roiMap.size() / 16, INTER_AREA);
 
     roiMap.convertTo(roiMap, CV_8U, 255);
     // threshold(roiMap, roiMap, 100, 255, THRESH_BINARY);

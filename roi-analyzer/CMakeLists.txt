@@ -13,6 +13,7 @@ set(HEADERS
     fes/FES.h
     facedetection/facedetectcnn.h
     facedetection/facedetection.h
+    cvsaliency/CVSaliency.h
     ROIDetector.h
 )
 
@@ -23,6 +24,7 @@ set(SOURCES
     facedetection/facedetectcnn-data.cpp
     facedetection/facedetectcnn-model.cpp
     facedetection/facedetection.cpp
+    cvsaliency/CVSaliency.cpp
 )
 
 add_executable( ROI-Detector ${HEADERS} ${SOURCES} )

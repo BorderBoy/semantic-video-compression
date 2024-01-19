@@ -91,8 +91,8 @@ void FaceDetection::computeROI(Mat& image, Mat& roiMap){
         rectangle(roiMap, Rect(x*FACE_DETECTION_SCALE, y*FACE_DETECTION_SCALE, w*FACE_DETECTION_SCALE, h*FACE_DETECTION_SCALE), Scalar(255), FILLED);
 	}
 
-    resize(roiMap, roiMap, roiMap.size() / 16);
-
+    resize(roiMap, roiMap, roiMap.size() / 16, INTER_AREA);
+    
     //release the buffer
     free(pBuffer);
 }
