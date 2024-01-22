@@ -20,15 +20,15 @@ void FES::computeROI(Mat& img, Mat& roiMap) {
 
     roiMap = computeFinalSaliency(labImg, {8,8,8}, {13, 25, 28}, 30, 10, 1, this->prior);
 
-    resize(roiMap, roiMap, roiMap.size() / 16, INTER_AREA);
+    resize(roiMap, roiMap, roiMap.size() / 16, 0, 0, INTER_AREA);
 
     roiMap.convertTo(roiMap, CV_8U, 255);
-    // threshold(roiMap, roiMap, 100, 255, THRESH_BINARY);
+    threshold(roiMap, roiMap, 100, 255, THRESH_BINARY);
 
-    // Mat kernelFES = getStructuringElement(MORPH_RECT, Size(10, 10));
-    // morphologyEx(roiMap, roiMap, MORPH_ERODE, kernelFES);
-    // kernelFES = getStructuringElement(MORPH_RECT, Size(15, 15));
-    // morphologyEx(roiMap, roiMap, MORPH_DILATE, kernelFES);
+    Mat kernelFES = getStructuringElement(MORPH_RECT, Size(5, 5));
+    morphologyEx(roiMap, roiMap, MORPH_ERODE, kernelFES);
+    kernelFES = getStructuringElement(MORPH_RECT, Size(10, 10));
+    morphologyEx(roiMap, roiMap, MORPH_DILATE, kernelFES);
 }
 
 // compute multi scale saliency over an image 

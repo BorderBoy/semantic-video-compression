@@ -99,10 +99,75 @@ void startServer(){
     sock.close();
 }
 
+void debug(){
+    // capture frames from camera and display in window
+    VideoCapture cap(2);
+    if (!cap.isOpened()) {
+        cerr << "ERROR: Unable to open the camera" << endl;
+        return;
+    }
+
+    // Init ROI detector
+    // ROIDetector* ROI = new FaceDetection();
+    // ROIDetector* ROI = new FES();
+    ROIDetector* ROI = new CVSaliency(OBJECTNESS);
+
+    int frameCounter = 0;
+    double totalTime = 0;
+    for ever {
+        Mat frame;
+        cap >> frame;
+        if (frame.empty()) {
+            cerr << "ERROR: Unable to grab from the camera" << endl;
+            break;
+        }
+
+        Mat showSaliency;
+
+        TickMeter cvtm;
+        cvtm.start();
+        
+        ROI->computeROI(frame, showSaliency);
+    
+        cvtm.stop();    
+        printf("time = %gms\n", cvtm.getTimeMilli());
+
+        frameCounter++;
+        totalTime += cvtm.getTimeMilli();
+
+        resize(showSaliency, showSaliency, frame.size(), 0, 0, INTER_NEAREST);
+
+        imshow("Display Image", frame);
+        imshow("Display Saliency", showSaliency);
+
+        // move and resize windows side by side, so they fill the screen
+        moveWindow("Display Image", 0, 0);
+        resizeWindow("Display Image", 640, 480);
+        moveWindow("Display Saliency", 640, 0);
+        resizeWindow("Display Saliency", 640, 480);
+
+        // wait for key input
+
+        if (waitKey(5) == 'q') {
+            break;
+        }
+    }
+
+    printf("Avg time/frame = %gms\n", totalTime / frameCounter);
+
+    delete ROI;
+}
+
 int main(int argc, char** argv )
 {
     namedWindow("Display Image", WINDOW_KEEPRATIO );
     namedWindow("Display Saliency", WINDOW_KEEPRATIO );
+
+    if(argc > 1 && strcmp(argv[1], "--debug") == 0){
+        cout << "Entering debug mode" << endl;
+        debug();
+        return 0;
+    }
     
     startServer();
 }

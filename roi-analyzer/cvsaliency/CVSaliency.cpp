@@ -38,14 +38,17 @@ void CVSaliency::computeROI(Mat& img, Mat& roiMap) {
         cvtColor(img, img, COLOR_BGR2GRAY);
         this->saliencyAlgorithm->computeSaliency(img, roiMap);
         roiMap = roiMap * 255;
-        resize(roiMap, roiMap, roiMap.size() / 16, INTER_AREA);
+        resize(roiMap, roiMap, roiMap.size() / 16, 0, 0, INTER_AREA);
     } else if(!bing.empty()){
+        Mat resizedImg;
+        resize(img, resizedImg, img.size() / BING_SCALE, 0, 0, INTER_AREA);
+
         vector<Vec4i> output;
-        bing->computeSaliency(img, output);
+        bing->computeSaliency(resizedImg, output);
 
-        vector<float> scores = bing->getobjectnessValues();
+        // vector<float> scores = bing->getobjectnessValues();
 
-        Mat heatmap = Mat::zeros(img.rows, img.cols, CV_32S);
+        Mat heatmap = Mat::zeros(resizedImg.rows, resizedImg.cols, CV_32S);
 
         for(int k = 0; k < 10; k++){
             for(int i = output[k][1]; i <= output[k][3]; i++){
@@ -57,13 +60,12 @@ void CVSaliency::computeROI(Mat& img, Mat& roiMap) {
 
         Mat heatmap_norm;
         normalize(heatmap, heatmap_norm, 0, 255, NORM_MINMAX, CV_8UC1);
-        roiMap = heatmap_norm;
-        threshold(roiMap, roiMap, 80, 255, THRESH_BINARY);
+        threshold(heatmap_norm, roiMap, 80, 255, THRESH_BINARY);
 
-        resize(roiMap, roiMap, roiMap.size()/16, INTER_AREA);
+        resize(roiMap, roiMap, img.size()/16, 0, 0, INTER_AREA);
     } else {
         this->saliencyAlgorithm->computeSaliency(img, roiMap);
-        resize(roiMap, roiMap, roiMap.size() / 16, INTER_AREA);
+        resize(roiMap, roiMap, roiMap.size() / 16, 0, 0, INTER_AREA);
     }
 
 

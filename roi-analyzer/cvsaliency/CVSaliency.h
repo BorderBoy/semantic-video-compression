@@ -5,6 +5,8 @@
 #include <opencv2/saliency.hpp>
 #include <numeric>
 
+#define BING_SCALE 4
+
 enum SaliencyType {
     STATIC_FINE_GRAINED_SALIENCY,
     STATIC_SPECTRAL_RESIDUAL_SALIENCY,
