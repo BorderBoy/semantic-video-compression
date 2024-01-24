@@ -64,7 +64,7 @@ void startServer(){
     zmq::context_t ctx;
     zmq::socket_t sock(ctx, ZMQ_REP);
     sock.bind("tcp://localhost:5555");
-    // cout << "Server started" << endl;
+    cout << "Server started" << endl;
 
     while (1) {
         Mat planeY = readMatFromSocket(&sock);
@@ -73,16 +73,8 @@ void startServer(){
         Mat img;
         cvtColorTwoPlane(planeY, planeUV, img, COLOR_YUV2BGR_NV12);
 
-        imshow("Display Image", img);
-
         ROI->computeROI(img, img);
 
-        Mat showSaliency;
-        resize(img, showSaliency, img.size() * 16, INTER_NEAREST);
-
-        imshow("Display Saliency", showSaliency);
-        waitKey(1);
-        
         if(!img.isContinuous()){
             std::cout << "Image is not continuous" << std::endl;
             exit(1);
@@ -108,9 +100,9 @@ void debug(){
     }
 
     // Init ROI detector
-    // ROIDetector* ROI = new FaceDetection();
+    ROIDetector* ROI = new FaceDetection();
     // ROIDetector* ROI = new FES();
-    ROIDetector* ROI = new CVSaliency(OBJECTNESS);
+    // ROIDetector* ROI = new CVSaliency(OBJECTNESS);
 
     int frameCounter = 0;
     double totalTime = 0;

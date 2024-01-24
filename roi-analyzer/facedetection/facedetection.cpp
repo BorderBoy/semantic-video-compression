@@ -42,6 +42,7 @@ the use of this software, even if advised of the possibility of such damage.
 using namespace cv;
 
 void FaceDetection::computeROI(Mat& image, Mat& roiMap){
+    Size roiMapSize = image.size() / 16;
     Mat resizedImage;
     resize(image, resizedImage, image.size() / FACE_DETECTION_SCALE);
 
@@ -70,8 +71,7 @@ void FaceDetection::computeROI(Mat& image, Mat& roiMap){
     // printf("time = %gms\n", cvtm.getTimeMilli());
     
     // printf("%d faces detected.\n", (pResults ? *pResults : 0));
-	Mat result_image = image.clone();
-    roiMap = Mat::zeros(image.size(), CV_8UC1);
+    roiMap = Mat::zeros(resizedImage.size(), CV_8UC1);
 	//print the detection results
 	for(int i = 0; i < (pResults ? *pResults : 0); i++)
 	{
@@ -84,14 +84,27 @@ void FaceDetection::computeROI(Mat& image, Mat& roiMap){
         
         //print the result
         // printf("face %d: confidence=%d, [%d, %d, %d, %d] (%d,%d) (%d,%d) (%d,%d) (%d,%d) (%d,%d)\n", 
-                // i, confidence, x, y, w, h, 
-                // p[5], p[6], p[7], p[8], p[9], p[10], p[11], p[12], p[13],p[14]);
+        //         i, confidence, x, y, w, h, 
+        //         p[5], p[6], p[7], p[8], p[9], p[10], p[11], p[12], p[13],p[14]);
 
         // generate map
-        rectangle(roiMap, Rect(x*FACE_DETECTION_SCALE, y*FACE_DETECTION_SCALE, w*FACE_DETECTION_SCALE, h*FACE_DETECTION_SCALE), Scalar(255), FILLED);
+        if(confidence > 70){
+            Point center = Point(x + w / 2, y + h / 2);
+            ellipse(roiMap, center, Size(w/2 * 1.2, h/2 * 1.2), 0, 0, 360, Scalar(255), FILLED);
+            // rectangle(roiMap, Rect(x, y, w, h), Scalar(255), FILLED);
+        }
 	}
 
-    resize(roiMap, roiMap, roiMap.size() / 16, 0, 0, INTER_AREA);
+    GaussianBlur(roiMap, roiMap, Size(21, 21), 0);
+
+    // Mat masked;
+    // Mat largeRoiMap;
+    // resize(roiMap, largeRoiMap, image.size(), 0, 0, INTER_NEAREST);
+    // bitwise_and(image, image, masked, largeRoiMap);
+    // imshow("Display Saliency", largeRoiMap);
+    // imshow("Display Image", masked);
+
+    resize(roiMap, roiMap, roiMapSize);
     
     //release the buffer
     free(pBuffer);
