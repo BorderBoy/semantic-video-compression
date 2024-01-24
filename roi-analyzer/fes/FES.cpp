@@ -11,16 +11,21 @@ FES::FES() {
 }
 
 void FES::computeROI(Mat& img, Mat& roiMap) {
+    Size roiMapSize = img.size() / 16;
+
+    Mat resizedImg;
+    resize(img, resizedImg, Size(171, 128));
+
     Mat floatImg;
-    img.convertTo(floatImg, CV_32F, 1/255.0);
+    resizedImg.convertTo(floatImg, CV_32F, 1/255.0);
 
     Mat labImg;
     labImg.create(img.size(), CV_32FC3);
     cvtColor(floatImg, labImg, COLOR_BGR2Lab);
 
     roiMap = computeFinalSaliency(labImg, {8,8,8}, {13, 25, 28}, 30, 10, 1, this->prior);
-
-    resize(roiMap, roiMap, roiMap.size() / 16, 0, 0, INTER_AREA);
+    
+    resize(roiMap, roiMap, roiMapSize);
 
     roiMap.convertTo(roiMap, CV_8U, 255);
     threshold(roiMap, roiMap, 100, 255, THRESH_BINARY);
@@ -63,8 +68,8 @@ void FES::computeROI(Mat& img, Mat& roiMap) {
 Mat FES::computeFinalSaliency(const Mat& img, vector<int> pScale, vector<float> sScale, float alpha, float sigma0, float sigma1, const Mat& p1) {
     Size imgSize = img.size();
 
-    Mat resizedImg;
-    resize(img, resizedImg, Size(171, 128));
+    // Mat resizedImg;
+    // resize(img, resizedImg, Size(171, 128));
 
     if (p1.rows != 128 || p1.cols != 171 || p1.channels() != 1) {
         cout << "p1 must be 128x171x1" << endl;
@@ -76,7 +81,7 @@ Mat FES::computeFinalSaliency(const Mat& img, vector<int> pScale, vector<float> 
     vector<Mat> saliencies;
 
     for (int i = 0; i < n; ++i) {
-        Mat temp = calculateImageSaliency(resizedImg, pScale[i], sScale[i], sigma0, sigma1, p1);
+        Mat temp = calculateImageSaliency(img, pScale[i], sScale[i], sigma0, sigma1, p1);
         
         saliencies.push_back(temp);
     }
@@ -101,7 +106,7 @@ Mat FES::computeFinalSaliency(const Mat& img, vector<int> pScale, vector<float> 
     saliency = (saliency - minVal) / (maxVal - minVal);
  
     // Resize to original size
-    resize(saliency, saliency, imgSize);
+    // resize(saliency, saliency, imgSize);
  
     return saliency;
 }
@@ -145,7 +150,7 @@ Mat FES::calculateImageSaliency(const Mat& img, int nSample, float radius, float
     vector<int> new_shape {nrow * ncol, nChannel};
     // We want to concat cols not the rows, so we transpose the image
     Mat fMat = img.t(); // checked
-    fMat = fMat.reshape(1, new_shape); // Build feature matrix, type: 32FC3
+    fMat = fMat.reshape(1, new_shape); // Build feature matrix, type: 32FC1
 
     // Get center coordinates
     Mat yc; // 1...12...23...ncol, every number nrow times, checked
@@ -186,7 +191,7 @@ Mat FES::calculateImageSaliency(const Mat& img, int nSample, float radius, float
         indX.col(2) = indX.col(2) * 2;
         indX.convertTo(indX, CV_32F);          // type: 32FC1
 
-        Mat fMatc; // type: 32FC3, checked
+        Mat fMatc; // type: 32FC1, checked
         remap(fMat, fMatc, indX, indY, INTER_LINEAR);
 
         Mat temp = fMatc - fMat;
