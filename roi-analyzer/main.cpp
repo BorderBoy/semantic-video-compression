@@ -100,8 +100,8 @@ void debug(){
     }
 
     // Init ROI detector
-    // ROIDetector* ROI = new FaceDetection();
-    ROIDetector* ROI = new FES();
+    ROIDetector* ROI = new FaceDetection();
+    // ROIDetector* ROI = new FES();
     // ROIDetector* ROI = new CVSaliency(OBJECTNESS);
 
     int frameCounter = 0;

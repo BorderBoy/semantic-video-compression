@@ -38,6 +38,8 @@
 #include "extras/intel_dispatcher.h"
 #endif
 
+#include "roi_detection/roi_detection.h"
+
 //#define DEBUG_MB_TYPE
 
 #define bs_write_ue bs_write_ue_big
@@ -4205,6 +4207,7 @@ void    x264_encoder_close  ( x264_t *h )
                    || h->stat.i_mb_count[SLICE_TYPE_B][I_PCM];
 
     x264_lookahead_delete( h );
+    destroy_roi_detection();
 
 #if HAVE_OPENCL
     x264_opencl_lookahead_delete( h );

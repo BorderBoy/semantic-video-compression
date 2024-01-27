@@ -1,12 +1,13 @@
 #include "roi_detection.h"
 
-int detect_roi(x264_frame_t *frame, pixel* roi_map){
-    static zsock_t* requester = NULL;
+static zsock_t* requester = NULL;
 
+int detect_roi(x264_frame_t *frame, pixel* roi_map){
     if (requester == NULL){
-        // printf ("Connecting server...\n");
+        printf ("Connecting to ROI detector...");
         requester = zsock_new (ZMQ_REQ);
         zsock_connect (requester, "tcp://localhost:5555");
+        printf ("OK\n");
     }
 
     // Send planes
@@ -19,7 +20,7 @@ int detect_roi(x264_frame_t *frame, pixel* roi_map){
     memcpy(roi_map, zframe_data(message), zframe_size(message)); // roi map should have 1/16 of the size of the frame
 
     zframe_destroy (&message);
-    zsock_destroy (&requester);
+    // zsock_destroy (&requester);
 
     return 0;
 }
@@ -56,4 +57,8 @@ void add_plane_to_message(zmsg_t *msg, x264_frame_t *frame, int index){
     zmsg_append(msg, &image_stride);
     zmsg_append(msg, &image_interleaved);
     zmsg_append(msg, &image);
+}
+
+void destroy_roi_detection(){
+    zsock_destroy (&requester);
 }
