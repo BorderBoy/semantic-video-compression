@@ -1,6 +1,14 @@
 #include "roi_detection.h"
 
 static zsock_t* requester = NULL;
+static int frame_counter = 0;
+static float total_time = 0; 
+
+static inline double curtime(){
+	struct timespec t;
+	clock_gettime(CLOCK_MONOTONIC, &t);
+	return t.tv_sec + t.tv_nsec * 1e-9;
+}
 
 int detect_roi(x264_frame_t *frame, pixel* roi_map){
     if (requester == NULL){
@@ -10,6 +18,7 @@ int detect_roi(x264_frame_t *frame, pixel* roi_map){
         printf ("OK\n");
     }
 
+    // double start = curtime();
     // Send planes
     send_planes(frame, requester);
 
@@ -22,6 +31,10 @@ int detect_roi(x264_frame_t *frame, pixel* roi_map){
     zframe_destroy (&message);
     // zsock_destroy (&requester);
 
+    // double end = curtime();
+    // total_time += end - start;
+    // frame_counter++;
+    
     return 0;
 }
 
@@ -61,4 +74,6 @@ void add_plane_to_message(zmsg_t *msg, x264_frame_t *frame, int index){
 
 void destroy_roi_detection(){
     zsock_destroy (&requester);
+
+    // printf("ROI detection time/frame: %f ms\n", total_time/frame_counter * 1000);
 }
