@@ -66,6 +66,8 @@ void startServer(){
     sock.bind("tcp://localhost:5555");
     cout << "Server started" << endl;
 
+    Mat test = Mat::zeros(80, 45, CV_8UC1);
+
     while (1) {
         Mat planeY = readMatFromSocket(&sock);
         Mat planeUV = readMatFromSocket(&sock);
@@ -81,6 +83,7 @@ void startServer(){
         }
 
         zmq::message_t roiMap(img.data, img.rows * img.cols);
+        // zmq::message_t roiMap(test.data, test.rows * test.cols);
 
         sock.send(roiMap, zmq::send_flags::none);
         // cout << "Sent reply" << endl;
@@ -100,8 +103,8 @@ void debug(){
     }
 
     // Init ROI detector
-    ROIDetector* ROI = new FaceDetection();
-    // ROIDetector* ROI = new FES();
+    // ROIDetector* ROI = new FaceDetection();
+    ROIDetector* ROI = new FES();
     // ROIDetector* ROI = new CVSaliency(OBJECTNESS);
 
     int frameCounter = 0;

@@ -149,8 +149,8 @@ Mat FES::calculateImageSaliency(const Mat& img, int nSample, float radius, float
 
     vector<int> new_shape {nrow * ncol, nChannel};
     // We want to concat cols not the rows, so we transpose the image
-    Mat fMat = img.t(); // checked
-    fMat = fMat.reshape(1, new_shape); // Build feature matrix, type: 32FC1
+    Mat fMat = img.t(); // checked // only transpose once
+    fMat = fMat.reshape(nChannel, {nrow * ncol, 1}); // Build feature matrix, type: 32FC3
 
     // Get center coordinates
     Mat yc; // 1...12...23...ncol, every number nrow times, checked
@@ -182,21 +182,35 @@ Mat FES::calculateImageSaliency(const Mat& img, int nSample, float radius, float
     for (int i = 0; i < nSample; ++i) {
         Mat fx = min(max(xc + x[i], 1), nrow); // type: 32SC1
         Mat fy = min(max(yc + y[i], 1), ncol); // type: 32SC1
+ 
+        Mat indY = fx + (fy-1) * nrow;          // type: 32SC1
+        // indY.convertTo(indY, CV_32F);           // type: 32FC1
 
-        Mat indY = fx + (fy-1) * nrow;         // type: 32SC1
-        indY = repeat(indY, 1, 3);
-        indY.convertTo(indY, CV_32F);          // type: 32FC1
-        Mat indX = Mat::ones(nrow * ncol, 3, CV_32S); // type: 32SC1
-        indX.col(0) = indX.col(0) * 0;
-        indX.col(2) = indX.col(2) * 2;
+        Mat indX = Mat::zeros(nrow * ncol, 1, CV_32S); // type: 32SC1
+        // indX.convertTo(indX, CV_32F);          // type: 32FC1
+
+        Mat ind;
+        merge(vector<Mat>{indX, indY}, ind);  // type: 32SC2
+        ind.convertTo(ind, CV_16S);           // type: 16SC2
+
         indX.convertTo(indX, CV_32F);          // type: 32FC1
+        indY.convertTo(indY, CV_32F);           // type: 32FC1
 
-        Mat fMatc; // type: 32FC1, checked
+        Mat fMatc;
         remap(fMat, fMatc, indX, indY, INTER_LINEAR);
+        Mat fMatc2;
+        // remap(fMat, fMatc2, ind, Mat(), INTER_LINEAR);
+
+        // cout << "fMatc: " << fMatc.at<Vec3f>(0) << ", " << fMatc.at<Vec3f>(1) << ", " << fMatc.at<Vec3f>(2) << endl;
+        // cout << "fMatc2: " << fMatc2.at<Vec3f>(0) << ", " << fMatc2.at<Vec3f>(1) << ", " << fMatc2.at<Vec3f>(2) << endl;
+
+        // cout << (fMatc.at<Vec3f>(0) == fMatc2.at<Vec3f>(0) ? "Passed" : "Failed") << endl;
 
         Mat temp = fMatc - fMat;
+        temp = temp.reshape(1, {nrow * ncol, nChannel});
+
         temp = temp.mul(temp);              // element-wise square
-        reduce(temp, temp, 1, REDUCE_SUM);  // sum over columns
+        reduce(temp, temp, 1, REDUCE_SUM);  // sum over channels
         temp = temp / (2 * sigma0 * sigma0);
         exp(-temp, temp);                   // element-wise exp
         LxcH0 += temp;
@@ -204,9 +218,9 @@ Mat FES::calculateImageSaliency(const Mat& img, int nSample, float radius, float
 
     Mat ph0 = 1 - ph1; // CV_32FC1, checked
 
-    Mat ph0_vec = ph0.t();
+    Mat ph0_vec = ph0.t(); // only transpose once
     ph0_vec = ph0_vec.reshape(1, nrow*ncol);     // CV_32FC1
-    Mat ph1_vec = ph1.t();
+    Mat ph1_vec = ph1.t(); // only transpose once
     ph1_vec = ph1_vec.reshape(1, nrow*ncol);     // CV_32FC1
 
     Mat constMat = (ph0_vec * sigma1) / (ph1_vec * nSample * sigma0); // checked
@@ -215,7 +229,7 @@ Mat FES::calculateImageSaliency(const Mat& img, int nSample, float radius, float
     Mat PH1xc = 1 / (1 + constMat.mul(LxcH0)); // checked
 
     Mat saliency = PH1xc.reshape(1, {ncol, nrow});
-    saliency = saliency.t();
+    saliency = saliency.t();    // only transpose once
 
     return saliency;
 }
