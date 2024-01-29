@@ -9,12 +9,14 @@
 using namespace cv;
 using namespace std;
 
+int frameRate = -1;
+
 void createVideoWriter(VideoWriter& wr, const Mat& frame){
     auto t = std::time(nullptr);
     auto tm = *std::localtime(&t);
     std::ostringstream oss;
     oss << std::put_time(&tm, "%Y-%m-%d_%H-%M-%S");
-    string filename = "../" + oss.str() + "_" + to_string(frame.cols) + "x" + to_string(frame.rows) + ".yuv";
+    string filename = "../" + oss.str() + "_" + to_string(frame.cols) + "x" + to_string(frame.rows) + "_" + to_string(frameRate) + ".yuv";
     wr = VideoWriter(filename, 0, 1, Size(frame.cols, frame.rows));
 }
 
@@ -24,6 +26,10 @@ int main() {
     int deviceID = 2;             // 0 = open default camera
     int apiID = cv::CAP_ANY;      // 0 = autodetect default API
     cap.open(deviceID, apiID);
+
+    frameRate = cap.get(CAP_PROP_FPS);
+
+    cout << "Frame rate: " << frameRate << endl;
 
     // Check if the webcam is opened successfully
     if (!cap.isOpened()) {
