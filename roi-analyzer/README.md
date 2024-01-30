@@ -3,7 +3,7 @@ This is a ZMQ server which will run and wait for frames, it will then calculate 
 
 ## Setup
 1. Make sure you have OpenCV installed
-2. Install [`libzmq`](https://github.com/zeromq/libzmq) and [`cppzmq`](https://github.com/zeromq/cppzmq) via [CMake]((https://github.com/zeromq/cppzmq?tab=readme-ov-file#build-instructions)).
+2. Install [`libzmq`](https://github.com/zeromq/libzmq) and [`cppzmq`](https://github.com/zeromq/cppzmq) via [CMake](https://github.com/zeromq/cppzmq?tab=readme-ov-file#build-instructions).
 3. `mkdir build`
 4. `cd build`
 5. `cmake ..`
