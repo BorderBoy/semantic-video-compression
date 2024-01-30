@@ -30,17 +30,19 @@ void FES::computeROI(Mat& img, Mat& roiMap) {
     labImg.create(img.size(), CV_32FC3);
     cvtColor(floatImg, labImg, COLOR_BGR2Lab);
 
-    roiMap = computeFinalSaliency(labImg, {8,8,8}, {13, 25, 28}, 30, 10, 1);
+    roiMap = computeFinalSaliency(labImg, {8,8,8}, {13, 25, 28}, 30, 10, 1); // Size is 171x128
     
-    resize(roiMap, roiMap, roiMapSize);
-
     roiMap.convertTo(roiMap, CV_8U, 255);
-    // threshold(roiMap, roiMap, 100, 255, THRESH_BINARY);
+    threshold(roiMap, roiMap, 80, 255, THRESH_BINARY);
 
-    // Mat kernelFES = getStructuringElement(MORPH_RECT, Size(5, 5));
-    // morphologyEx(roiMap, roiMap, MORPH_ERODE, kernelFES);
-    // kernelFES = getStructuringElement(MORPH_RECT, Size(10, 10));
-    // morphologyEx(roiMap, roiMap, MORPH_DILATE, kernelFES);
+    Mat kernelFES = getStructuringElement(MORPH_RECT, Size(5, 5));
+    morphologyEx(roiMap, roiMap, MORPH_ERODE, kernelFES);
+    kernelFES = getStructuringElement(MORPH_RECT, Size(10, 10));
+    morphologyEx(roiMap, roiMap, MORPH_DILATE, kernelFES);
+
+    GaussianBlur(roiMap, roiMap, Size(5, 5), 0);
+
+    resize(roiMap, roiMap, roiMapSize);
 }
 
 // compute multi scale saliency over an image 

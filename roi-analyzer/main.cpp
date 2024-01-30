@@ -56,8 +56,8 @@ Mat readMatFromSocket(zmq::socket_t *sock) {
 
 void startServer(){
     // Init ROI detector
-    ROIDetector* ROI = new FaceDetection();
-    // ROIDetector* ROI = new FES();
+    // ROIDetector* ROI = new FaceDetection();
+    ROIDetector* ROI = new FES();
     // ROIDetector* ROI = new CVSaliency(OBJECTNESS);
     
     //  Socket to talk to clients
@@ -103,8 +103,8 @@ void debug(){
     }
 
     // Init ROI detector
-    // ROIDetector* ROI = new FaceDetection();
-    ROIDetector* ROI = new FES();
+    ROIDetector* ROI = new FaceDetection();
+    // ROIDetector* ROI = new FES();
     // ROIDetector* ROI = new CVSaliency(OBJECTNESS);
 
     int frameCounter = 0;
@@ -132,7 +132,10 @@ void debug(){
 
         resize(showSaliency, showSaliency, frame.size(), 0, 0, INTER_NEAREST);
 
-        imshow("Display Image", frame);
+        Mat masked;
+        bitwise_and(frame, frame, masked, showSaliency);
+
+        imshow("Display Image", masked);
         imshow("Display Saliency", showSaliency);
 
         // move and resize windows side by side, so they fill the screen
