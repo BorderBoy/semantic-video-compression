@@ -54,10 +54,10 @@ Mat readMatFromSocket(zmq::socket_t *sock) {
     return img.clone();
 }
 
-void startServer(){
+void startServer(ROIDetector* ROI){
     // Init ROI detector
     // ROIDetector* ROI = new FaceDetection();
-    ROIDetector* ROI = new FES();
+    // ROIDetector* ROI = new FES();
     // ROIDetector* ROI = new CVSaliency(OBJECTNESS);
     
     //  Socket to talk to clients
@@ -89,12 +89,12 @@ void startServer(){
         // cout << "Sent reply" << endl;
     }
 
-    delete ROI;
+    // delete ROI;
 
     sock.close();
 }
 
-void debug(){
+void debug(ROIDetector* ROI){
     // capture frames from camera and display in window
     VideoCapture cap(2);
     if (!cap.isOpened()) {
@@ -105,7 +105,7 @@ void debug(){
     // Init ROI detector
     // ROIDetector* ROI = new FaceDetection();
     // ROIDetector* ROI = new FES();
-    ROIDetector* ROI = new CVSaliency(OBJECTNESS);
+    // ROIDetector* ROI = new CVSaliency(OBJECTNESS);
 
     int frameCounter = 0;
     double totalTime = 0;
@@ -135,7 +135,7 @@ void debug(){
         Mat masked;
         bitwise_and(frame, frame, masked, showSaliency);
 
-        // imshow("Display Image", masked);
+        imshow("Display Image", masked);
         imshow("Display Saliency", showSaliency);
 
         // move and resize windows side by side, so they fill the screen
@@ -153,7 +153,7 @@ void debug(){
 
     printf("Avg time/frame = %gms\n", totalTime / frameCounter);
 
-    delete ROI;
+    // delete ROI;
 }
 
 int main(int argc, char** argv )
@@ -161,11 +161,41 @@ int main(int argc, char** argv )
     namedWindow("Display Image", WINDOW_KEEPRATIO );
     namedWindow("Display Saliency", WINDOW_KEEPRATIO );
 
-    if(argc > 1 && strcmp(argv[1], "--debug") == 0){
-        cout << "Entering debug mode" << endl;
-        debug();
-        return 0;
+    ROIDetector* ROI = nullptr;
+    bool useDebug = false;
+
+    for(int i = 1; i < argc; i++){
+        if (strcmp(argv[i], "--debug") == 0 || strcmp(argv[i], "-d") == 0) {
+            useDebug = true;
+        } else if (strcmp(argv[i], "-m") == 0 || strcmp(argv[i], "--mode") == 0){
+            i++;
+            if (strcmp(argv[i], "face") == 0){
+                ROI = new FaceDetection();
+            } else if (strcmp(argv[i], "fes") == 0){
+                ROI = new FES();
+            } else if (strcmp(argv[i], "cvsaliency") == 0){
+                ROI = new CVSaliency(OBJECTNESS);
+            } else {
+                std::cout << "Invalid mode: " << argv[i] << std::endl;
+                exit(1);
+            }
+        } else {
+            std::cout << "Invalid argument: " << argv[i] << std::endl;
+            exit(1);
+        }
     }
-    
-    startServer();
+
+    if(ROI == nullptr){
+        ROI = new FaceDetection();
+    }
+
+    if(useDebug){
+        debug(ROI);
+    } else {
+        startServer(ROI);
+    }
+
+    delete ROI;
+
+    return 0;
 }

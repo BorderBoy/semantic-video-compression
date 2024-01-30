@@ -10,6 +10,11 @@ This is a ZMQ server which will run and wait for frames, it will then calculate 
 6. `make`
 
 ## Usage
-To start the ZMQ server: `./ROI-Detector`. The server will be started on: `localhost:5555`.
+**`-m`/`--mode`**: Select ROI detection mode
+  - `face`: Face detection based on [libfacedetection](https://github.com/ShiqiYu/libfacedetection) (default)
+  - `fes`: Fast and efficient saliency based on [this paper](https://link.springer.com/chapter/10.1007/978-3-642-21227-7_62)
+  - `cvsaliency`: OpenCV saliency modules
+  
+**`-d`/`--debug`**: Starts the program in debug mode. Camera is used as input and ROI map is displayed. Also prints frame stats. **This will not start the ZMQ server.**
 
-To start a debug version which uses the camera as input and shows the resulting ROI map use the `--debug` option.
+The server will be started on `localhost:5555`.

@@ -62,8 +62,6 @@ void CVSaliency::computeROI(Mat& img, Mat& roiMap) {
             }
         }
 
-        imshow("Display Image", resizedImg);
-
         Mat heatmap_norm;
         normalize(heatmap, heatmap_norm, 0, 255, NORM_MINMAX, CV_8UC1);
         threshold(heatmap_norm, roiMap, 100, 255, THRESH_BINARY);
