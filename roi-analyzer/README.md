@@ -10,5 +10,6 @@ This is a ZMQ server which will run and wait for frames, it will then calculate 
 6. `make`
 
 ## Usage
-To start the ZMQ server: `./ROI-Detector`. The servre will be started on: `localhost:5555`
-To start a debug version which used the camera as input and shows the resulting ROI map: `./ROI-Detector --debug`
+To start the ZMQ server: `./ROI-Detector`. The server will be started on: `localhost:5555`.
+
+To start a debug version which uses the camera as input and shows the resulting ROI map use the `--debug` option.
