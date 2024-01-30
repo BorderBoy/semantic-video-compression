@@ -24,6 +24,8 @@ CVSaliency::CVSaliency(SaliencyType type) {
 }
 
 void CVSaliency::computeROI(Mat& img, Mat& roiMap) {
+    Size roiMapSize = img.size() / 16;
+
     Ptr<saliency::MotionSaliencyBinWangApr2014> motionSaliency = this->saliencyAlgorithm.dynamicCast<saliency::MotionSaliencyBinWangApr2014>();
     Ptr<saliency::ObjectnessBING> bing = this->saliencyAlgorithm.dynamicCast<saliency::ObjectnessBING>();
 
@@ -38,10 +40,10 @@ void CVSaliency::computeROI(Mat& img, Mat& roiMap) {
         cvtColor(img, img, COLOR_BGR2GRAY);
         this->saliencyAlgorithm->computeSaliency(img, roiMap);
         roiMap = roiMap * 255;
-        resize(roiMap, roiMap, roiMap.size() / 16, 0, 0, INTER_AREA);
+        resize(roiMap, roiMap, roiMap.size() / 16);
     } else if(!bing.empty()){
         Mat resizedImg;
-        resize(img, resizedImg, img.size() / BING_SCALE, 0, 0, INTER_AREA);
+        resize(img, resizedImg, img.size() / BING_SCALE);
 
         vector<Vec4i> output;
         bing->computeSaliency(resizedImg, output);
@@ -50,7 +52,9 @@ void CVSaliency::computeROI(Mat& img, Mat& roiMap) {
 
         Mat heatmap = Mat::zeros(resizedImg.rows, resizedImg.cols, CV_32S);
 
-        for(int k = 0; k < 10; k++){
+        for(int k = 10; k < 50; k++){
+            rectangle(resizedImg, Point(output[k][0], output[k][1]), Point(output[k][2], output[k][3]), Scalar(0, 0, 255), 1, 8, 0);
+
             for(int i = output[k][1]; i <= output[k][3]; i++){
                 for(int j = output[k][0]; j <= output[k][2]; j++){
                     heatmap.at<uint32_t>(i,j) += 1;
@@ -58,14 +62,18 @@ void CVSaliency::computeROI(Mat& img, Mat& roiMap) {
             }
         }
 
+        imshow("Display Image", resizedImg);
+
         Mat heatmap_norm;
         normalize(heatmap, heatmap_norm, 0, 255, NORM_MINMAX, CV_8UC1);
-        threshold(heatmap_norm, roiMap, 80, 255, THRESH_BINARY);
+        threshold(heatmap_norm, roiMap, 100, 255, THRESH_BINARY);
 
-        resize(roiMap, roiMap, img.size()/16, 0, 0, INTER_AREA);
+        resize(roiMap, roiMap, roiMapSize);
     } else {
         this->saliencyAlgorithm->computeSaliency(img, roiMap);
-        resize(roiMap, roiMap, roiMap.size() / 16, 0, 0, INTER_AREA);
+        resize(roiMap, roiMap, roiMapSize);
+
+        roiMap.convertTo(roiMap, CV_8U, 255);
     }
 
 

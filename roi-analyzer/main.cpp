@@ -103,9 +103,9 @@ void debug(){
     }
 
     // Init ROI detector
-    ROIDetector* ROI = new FaceDetection();
+    // ROIDetector* ROI = new FaceDetection();
     // ROIDetector* ROI = new FES();
-    // ROIDetector* ROI = new CVSaliency(OBJECTNESS);
+    ROIDetector* ROI = new CVSaliency(OBJECTNESS);
 
     int frameCounter = 0;
     double totalTime = 0;
@@ -135,7 +135,7 @@ void debug(){
         Mat masked;
         bitwise_and(frame, frame, masked, showSaliency);
 
-        imshow("Display Image", masked);
+        // imshow("Display Image", masked);
         imshow("Display Saliency", showSaliency);
 
         // move and resize windows side by side, so they fill the screen

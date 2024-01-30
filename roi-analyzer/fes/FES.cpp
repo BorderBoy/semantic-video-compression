@@ -105,7 +105,7 @@ Mat FES::computeFinalSaliency(const Mat& img, vector<int> pScale, vector<float> 
     transform(saliency, saliency, cv::Matx13f(1,1,1)); // sum over scales
     saliency = saliency / n;
   
-    // Normalize
+    // Normalize // TODO: maybe ues normalize()?
     double minVal, maxVal;
     minMaxLoc(saliency, &minVal, &maxVal);
     saliency = (saliency - minVal) / (maxVal - minVal);
