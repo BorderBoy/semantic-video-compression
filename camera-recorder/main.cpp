@@ -4,23 +4,31 @@
 #include <iomanip>
 #include <ctime>
 #include <string>
-
+#include <zmq.hpp>
 
 using namespace cv;
 using namespace std;
 
 int frameRate = -1;
 
-void createVideoWriter(VideoWriter& wr, const Mat& frame){
+string createVideoWriter(VideoWriter& wr, const Mat& frame){
     auto t = std::time(nullptr);
     auto tm = *std::localtime(&t);
     std::ostringstream oss;
     oss << std::put_time(&tm, "%Y-%m-%d_%H-%M-%S");
     string filename = "../" + oss.str() + "_" + to_string(frame.cols) + "x" + to_string(frame.rows) + "_" + to_string(frameRate) + ".yuv";
     wr = VideoWriter(filename, 0, 1, Size(frame.cols, frame.rows));
+
+    return oss.str() + "_" + to_string(frame.cols) + "x" + to_string(frame.rows) + "_" + to_string(frameRate);
 }
 
-int main() {
+int main(int argc, char** argv) {
+    bool useZMQ = false;
+
+    if (argc > 1 && strcmp(argv[1], "--zmq") == 0) {
+        useZMQ = true;
+    }
+
     // Open a connection to the webcam (default camera index 0)
     VideoCapture cap;
     int deviceID = 2;             // 0 = open default camera
@@ -43,6 +51,18 @@ int main() {
     bool recording = false;
     bool running = true;
     Mat frame;
+    namedWindow("Webcam", WINDOW_NORMAL);
+
+    // ZMQ
+    zmq::context_t context{1};
+    zmq::socket_t socket;
+    if(useZMQ){
+        // construct a REQ (request) socket and connect to interface
+        socket = zmq::socket_t{context, zmq::socket_type::req};
+        socket.connect("tcp://localhost:5555");
+        cout << "Connecting to ZMQ server..." << endl;
+    }
+
     while (running) {
         // Capture a frame from the webcam
         cap >> frame;
@@ -61,7 +81,20 @@ int main() {
         case 'r':
             if(!recording){
                 recording = true;
-                createVideoWriter(writer, frame);
+                string filename = createVideoWriter(writer, frame);
+
+                if(useZMQ){ 
+                    const std::string data{"start:"+filename};
+                    socket.send(zmq::buffer(data), zmq::send_flags::none);
+                        
+                    // wait for reply from server
+                    zmq::message_t reply{};
+                    socket.recv(reply, zmq::recv_flags::none);
+
+                    if(reply.to_string() != "OK"){
+                        std::cerr << "Error: ZMQ server did not sent OK" << endl;
+                    }
+                }
                 
                 // Check if the video writer is opened successfully
                 if (!writer.isOpened()) {
@@ -71,6 +104,19 @@ int main() {
             } else {
                 recording = false;
                 writer.release();
+
+                if(useZMQ){
+                    const std::string data{"stop"};
+                    socket.send(zmq::buffer(data), zmq::send_flags::none);
+                        
+                    // wait for reply from server
+                    zmq::message_t reply{};
+                    socket.recv(reply, zmq::recv_flags::none);
+
+                    if(reply.to_string() != "OK"){
+                        std::cerr << "Error: ZMQ server did not sent OK" << endl;
+                    }
+                }
             }
             break;
         }
@@ -90,6 +136,8 @@ int main() {
     cap.release();
     writer.release();
 
+    socket.close();
+    
     // Close any OpenCV windows (optional, uncomment if needed)
     cv::destroyAllWindows();
 
