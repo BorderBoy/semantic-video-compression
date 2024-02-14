@@ -7,9 +7,10 @@ BITRATES=(500 1500) #in kbit/s
 ROI_MODES=("none" "face" "fes")
 FPS=30
 RESOLUTION="1280x720"
+REPEATS=3 # number of times each encoding is done
 
 # clear results file
-echo "" > results.csv
+echo "name,encoding time,encoded frames,fps,bitrate" > $RES_PATH/results.csv
 
 for mode in "${ROI_MODES[@]}"; do
     if [ "$mode" != "none" ]; then
@@ -23,29 +24,31 @@ for mode in "${ROI_MODES[@]}"; do
 
     for br in "${BITRATES[@]}"; do
         for file in $RECS_PATH/*; do
-            out_file=$(basename ${file} .yuv)_"$br"_"$mode"
-            params="--quiet --no-progress -B $br --fps $FPS --input-res $RESOLUTION -o "$RES_PATH"/$out_file.h264 $file"
-            if [ "$mode" != "none" ]; then
-                params="--aq-mode 4 $params"
-            fi
+            for (( i=0; i<$REPEATS; i++ )); do   
+                out_file=$(basename ${file} .yuv)_"$br"_"$mode"
+                params="--quiet --no-progress --profile baseline -B $br --fps $FPS --input-res $RESOLUTION -o "$RES_PATH"/$out_file.h264 $file"
+                if [ "$mode" != "none" ]; then
+                    params="--aq-mode 4 $params"
+                fi
 
-            start=$(gdate +%s.%3N)
-            output=$($X264_PATH $params 2>&1 >/dev/null)
-            end=$(gdate +%s.%3N)
+                start=$(gdate +%s.%3N)
+                output=$($X264_PATH $params 2>&1 >/dev/null)
+                end=$(gdate +%s.%3N)
 
-            elapsed=$(echo "$end - $start" | bc)
+                elapsed=$(echo "$end - $start" | bc)
 
-            # extract frames encoded, fps and bitrate from output
-            pattern='encoded\ ([0-9]+)\ frames,\ ([0-9.]+)\ fps,\ ([0-9.]+)\ kb/s'
-            if [[ $output =~ $pattern ]]; then
-                frames=${BASH_REMATCH[1]}
-                fps=${BASH_REMATCH[2]}
-                bitrate=${BASH_REMATCH[3]}
-            else
-                echo "Failed to extract values from the input string."
-            fi
+                # extract frames encoded, fps and bitrate from output
+                pattern='encoded\ ([0-9]+)\ frames,\ ([0-9.]+)\ fps,\ ([0-9.]+)\ kb/s'
+                if [[ $output =~ $pattern ]]; then
+                    frames=${BASH_REMATCH[1]}
+                    fps=${BASH_REMATCH[2]}
+                    bitrate=${BASH_REMATCH[3]}
+                else
+                    echo "Failed to extract values from the input string."
+                fi
 
-            echo $out_file,$elapsed,$frames,$fps,$bitrate >> results.csv
+                echo $out_file,$elapsed,$frames,$fps,$bitrate >> $RES_PATH/results.csv
+            done
         done
     done
 
