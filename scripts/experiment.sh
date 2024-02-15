@@ -37,7 +37,7 @@ for mode in "${ROI_MODES[@]}"; do
                 fi
 
                 out_file="$base_name"_"$br"_"$mode"
-                params="--quiet --no-progress --profile baseline -B $br --fps $FPS --input-res $RESOLUTION -o "$RES_PATH"/$out_file.h264 $file"
+                params="--quiet --no-progress --profile baseline --vbv-maxrate $br --vbv-bufsize $br --fps $FPS --input-res $RESOLUTION -o "$RES_PATH"/$out_file.h264 $file"
                 if [ "$mode" != "none" ]; then
                     params="--aq-mode 4 $params"
                 fi
