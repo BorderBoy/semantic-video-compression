@@ -351,10 +351,10 @@ void x264_adaptive_quant_frame( x264_t *h, x264_frame_t *frame, float *quant_off
     {
         // Get ROI map when mode is AQ_CUSTOM
         pixel* roi_map;
-        int custom_max_offset = 30;
+        int custom_max_offset = 51;
         if(h->param.rc.i_aq_mode == X264_AQ_CUSTOM){
             roi_map = (pixel*) malloc(frame->i_lines[0]/16 * frame->i_width[0]/16);
-            if(detect_roi(frame, roi_map) != 0){
+            if(detect_roi(h, frame, roi_map) != 0){
                 x264_log( "x264", X264_LOG_ERROR, "cannot connect to roi detection server\n" );
                 exit(1);
             }
@@ -403,6 +403,10 @@ void x264_adaptive_quant_frame( x264_t *h, x264_frame_t *frame, float *quant_off
                     qp_adj = frame->f_qp_offset[mb_xy];
                     qp_adj = strength * (qp_adj - avg_adj);
                 }
+                else if ( h->param.rc.i_aq_mode == X264_AQ_CUSTOM ){
+                    int offset = (255 - roi_map[mb_y * h->mb.i_mb_width + mb_x])/255 * custom_max_offset;
+                    qp_adj = -(roi_map[mb_y * h->mb.i_mb_width + mb_x])/255 * 20 + 10;
+                }
                 else
                 {
                     uint32_t energy = ac_energy_mb( h, mb_x, mb_y, frame );
@@ -411,15 +415,11 @@ void x264_adaptive_quant_frame( x264_t *h, x264_frame_t *frame, float *quant_off
                 if( quant_offsets )
                     qp_adj += quant_offsets[mb_xy];
 
-                if(h->param.rc.i_aq_mode == X264_AQ_CUSTOM) {
-                    int offset = (255 - roi_map[mb_y * h->mb.i_mb_width + mb_x])/255 * custom_max_offset;
-                    
-                    frame->f_qp_offset[mb_xy] =
-                    frame->f_qp_offset_aq[mb_xy] = offset+qp_adj;
-                } else {
-                    frame->f_qp_offset[mb_xy] =
-                    frame->f_qp_offset_aq[mb_xy] = qp_adj;
-                }
+                frame->f_qp_offset[mb_xy] =
+                frame->f_qp_offset_aq[mb_xy] = qp_adj;
+
+                // if( abs(qp_adj) > 1e-7 )
+                //     x264_log( h, X264_LOG_INFO, "qp-offset: %f\n", qp_adj );
 
                 if( h->frames.b_have_lowres )
                     frame->i_inv_qscale_factor[mb_xy] = x264_exp2fix8(qp_adj);

@@ -10,12 +10,11 @@ static inline double curtime(){
 	return t.tv_sec + t.tv_nsec * 1e-9;
 }
 
-int detect_roi(x264_frame_t *frame, pixel* roi_map){
+int detect_roi(x264_t *h, x264_frame_t *frame, pixel* roi_map){
     if (requester == NULL){
-        printf ("Connecting to ROI detector...");
+        x264_log( h, X264_LOG_INFO, "Connecting to ROI detector...\n");
         requester = zsock_new (ZMQ_REQ);
         zsock_connect (requester, "tcp://localhost:5555");
-        printf ("OK\n");
     }
 
     // double start = curtime();
