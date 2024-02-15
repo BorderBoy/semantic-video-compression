@@ -55,11 +55,6 @@ Mat readMatFromSocket(zmq::socket_t *sock) {
 }
 
 void startServer(ROIDetector* ROI){
-    // Init ROI detector
-    // ROIDetector* ROI = new FaceDetection();
-    // ROIDetector* ROI = new FES();
-    // ROIDetector* ROI = new CVSaliency(OBJECTNESS);
-    
     //  Socket to talk to clients
     zmq::context_t ctx;
     zmq::socket_t sock(ctx, ZMQ_REP);
@@ -89,23 +84,19 @@ void startServer(ROIDetector* ROI){
         // cout << "Sent reply" << endl;
     }
 
-    // delete ROI;
-
     sock.close();
 }
 
 void debug(ROIDetector* ROI){
+    namedWindow("Display Image", WINDOW_KEEPRATIO );
+    namedWindow("Display Saliency", WINDOW_KEEPRATIO );
+
     // capture frames from camera and display in window
     VideoCapture cap(2);
     if (!cap.isOpened()) {
         cerr << "ERROR: Unable to open the camera" << endl;
         return;
     }
-
-    // Init ROI detector
-    // ROIDetector* ROI = new FaceDetection();
-    // ROIDetector* ROI = new FES();
-    // ROIDetector* ROI = new CVSaliency(OBJECTNESS);
 
     int frameCounter = 0;
     double totalTime = 0;
@@ -152,15 +143,10 @@ void debug(ROIDetector* ROI){
     }
 
     printf("Avg time/frame = %gms\n", totalTime / frameCounter);
-
-    // delete ROI;
 }
 
 int main(int argc, char** argv )
 {
-    namedWindow("Display Image", WINDOW_KEEPRATIO );
-    namedWindow("Display Saliency", WINDOW_KEEPRATIO );
-
     ROIDetector* ROI = nullptr;
     bool useDebug = false;
 
