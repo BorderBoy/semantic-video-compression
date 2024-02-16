@@ -351,7 +351,7 @@ void x264_adaptive_quant_frame( x264_t *h, x264_frame_t *frame, float *quant_off
     {
         // Get ROI map when mode is AQ_CUSTOM
         pixel* roi_map;
-        int custom_max_offset = 40;
+        int custom_max_offset = 15;
         if(h->param.rc.i_aq_mode == X264_AQ_CUSTOM){
             roi_map = (pixel*) malloc(frame->i_lines[0]/16 * frame->i_width[0]/16);
             if(detect_roi(h, frame, roi_map) != 0){
