@@ -37,7 +37,7 @@ for mode in "${ROI_MODES[@]}"; do
                 fi
 
                 out_file="$base_name"_"$br"_"$mode"
-                params="--quiet --no-progress --profile baseline --vbv-maxrate $br --vbv-bufsize $br --fps $FPS --input-res $RESOLUTION -o "$RES_PATH"/$out_file.h264 $file"
+                params="--quiet --no-progress --profile baseline --vbv-bufsize $((4*$br)) --bitrate $br --fps $FPS --input-res $RESOLUTION -o "$RES_PATH"/$out_file.h264 $file"
                 if [ "$mode" != "none" ]; then
                     params="--aq-mode 4 $params"
                 fi
@@ -58,6 +58,7 @@ for mode in "${ROI_MODES[@]}"; do
                 fi
 
                 echo $out_file,$elapsed,$frames,$fps,$bitrate >> $RES_PATH/results.csv
+                echo "Done: $out_file, $elapsed s, $frames frames, $fps fps, $bitrate kbit/s"
             done
         done
     done
