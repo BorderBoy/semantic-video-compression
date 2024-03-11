@@ -34,6 +34,7 @@ int main(int argc, char** argv) {
     int deviceID = 2;             // 0 = open default camera
     int apiID = cv::CAP_ANY;      // 0 = autodetect default API
     cap.open(deviceID, apiID);
+    cap.set(CAP_PROP_AUTO_WB, 0);
 
     frameRate = cap.get(CAP_PROP_FPS);
 
