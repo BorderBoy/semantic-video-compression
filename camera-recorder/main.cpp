@@ -5,9 +5,11 @@
 #include <ctime>
 #include <string>
 #include <zmq.hpp>
+#include <chrono>
 
 using namespace cv;
 using namespace std;
+using namespace std::chrono;
 
 int frameRate = -1;
 
@@ -35,6 +37,7 @@ int main(int argc, char** argv) {
     int apiID = cv::CAP_ANY;      // 0 = autodetect default API
     cap.open(deviceID, apiID);
     cap.set(CAP_PROP_AUTO_WB, 0);
+    cout << "CAP_PROP_AUTO_WB: " << cap.get(CAP_PROP_AUTO_WB) << endl;
 
     frameRate = cap.get(CAP_PROP_FPS);
 
@@ -64,14 +67,28 @@ int main(int argc, char** argv) {
         cout << "Connecting to ZMQ server..." << endl;
     }
 
+    Mat *frames = new Mat[9000]; // 5 minutes of recording at 30fps
+    size_t frame_count = 0;
+
+    auto last_capture = high_resolution_clock::now();
+
+    bool stopRecording = false;
+
     while (running) {
         // Capture a frame from the webcam
         cap >> frame;
 
+        double time = duration_cast<milliseconds>(high_resolution_clock::now() - last_capture).count();
+        if(time > 1.5f * 1000.0f/frameRate){
+            cout << "FRAME SKIPPED: " << time << endl;
+        }
+
+        last_capture = high_resolution_clock::now();
+
         // Check if the frame is empty (end of video)
         if (frame.empty()) {
             std::cerr << "Error: Could not read frame from webcam." << std::endl;
-            break;
+            stopRecording = true;
         }
 
         switch(waitKey(1)){
@@ -103,28 +120,41 @@ int main(int argc, char** argv) {
                     return -1;
                 }
             } else {
-                recording = false;
-                writer.release();
-
-                if(useZMQ){
-                    const std::string data{"stop"};
-                    socket.send(zmq::buffer(data), zmq::send_flags::none);
-                        
-                    // wait for reply from server
-                    zmq::message_t reply{};
-                    socket.recv(reply, zmq::recv_flags::none);
-
-                    if(reply.to_string() != "OK"){
-                        std::cerr << "Error: ZMQ server did not sent OK" << endl;
-                    }
-                }
+                stopRecording = true;
             }
             break;
         }
 
+        if(stopRecording){
+            if(useZMQ){
+                const std::string data{"stop"};
+                socket.send(zmq::buffer(data), zmq::send_flags::none);
+                    
+                // wait for reply from server
+                zmq::message_t reply{};
+                socket.recv(reply, zmq::recv_flags::none);
+
+                if(reply.to_string() != "OK"){
+                    std::cerr << "Error: ZMQ server did not sent OK" << endl;
+                }
+            }
+            
+            // Write the YUV frames to the video file
+            for(size_t i = 0; i < frame_count; i++){
+                writer.write(frames[i]);
+                frames[i].release();
+            }
+
+            frame_count = 0;
+            recording = false;
+            writer.release();
+
+            stopRecording = false;
+        }
+
         if(recording){
-            // Write the YUV frame to the video file
-            writer.write(frame);
+            // Store the frame in the buffer
+            frames[frame_count++] = frame.clone();
             putText(frame, "RECORDING", Point(10, 30), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2, LINE_AA);
         } else {
             putText(frame, "Press 'r' to start recording", Point(10, 30), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(255, 255, 255), 2, LINE_AA);
@@ -132,6 +162,8 @@ int main(int argc, char** argv) {
 
         cv::imshow("Webcam", frame);
     }
+
+    delete[] frames;
 
     // Release the VideoCapture and VideoWriter objects
     cap.release();
