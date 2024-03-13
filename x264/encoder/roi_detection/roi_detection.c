@@ -41,6 +41,10 @@ int send_planes(x264_frame_t *frame, zsock_t* requester){
     // Send image
     zmsg_t *msg = zmsg_new();
 
+    bool disconnect_flag = false;
+    zframe_t* disconnect = zframe_new(&disconnect_flag, sizeof(bool));
+    zmsg_append(msg, &disconnect);
+
     add_plane_to_message(msg, frame, 0);
     add_plane_to_message(msg, frame, 1);
 
@@ -72,6 +76,14 @@ void add_plane_to_message(zmsg_t *msg, x264_frame_t *frame, int index){
 }
 
 void destroy_roi_detection(){
+    // Tell ROI dectector this was the last frame
+    zmsg_t *msg = zmsg_new();
+
+    bool disconnect_flag = true;
+    zframe_t* disconnect = zframe_new(&disconnect_flag, sizeof(bool));
+    zmsg_append(msg, &disconnect);
+    zmsg_send(&msg, requester);
+
     zsock_destroy (&requester);
 
     // printf("ROI detection time/frame: %f ms\n", total_time/frame_counter * 1000);

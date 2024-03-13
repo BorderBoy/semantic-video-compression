@@ -63,14 +63,48 @@ void startServer(ROIDetector* ROI){
 
     Mat test = Mat::zeros(80, 45, CV_8UC1);
 
+    VideoWriter wr;
+    bool first = true;
+
+    namedWindow("Display Image", WINDOW_KEEPRATIO );
+
     while (1) {
+        zmq::message_t request;
+        sock.recv (request, zmq::recv_flags::none);
+        bool disconnect = *(bool*)request.data();
+
+        if (disconnect)
+        {
+            cout << "Storing file" << endl;
+            // Send empty message to make we can receive the next message
+            int i = 0;
+            zmq::message_t emptyMessage(&i, sizeof(i));
+            sock.send(emptyMessage, zmq::send_flags::none);
+
+            // wr.release();
+            continue;
+        }
+        
+
         Mat planeY = readMatFromSocket(&sock);
         Mat planeUV = readMatFromSocket(&sock);
 
         Mat img;
         cvtColorTwoPlane(planeY, planeUV, img, COLOR_YUV2BGR_NV12);
 
+        Size orgSize = img.size();
+
         ROI->computeROI(img, img);
+        
+        Mat showSaliency;
+        resize(img, showSaliency, orgSize, 0, 0, INTER_NEAREST);
+
+        if(first){
+            wr.open("../test.mp4", VideoWriter::fourcc('a','v','c','1'), 30, showSaliency.size(), false);
+            first = false;
+        }
+
+        wr.write(showSaliency);
 
         if(!img.isContinuous()){
             std::cout << "Image is not continuous" << std::endl;
