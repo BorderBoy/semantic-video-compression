@@ -81,7 +81,9 @@ void startServer(ROIDetector* ROI){
             zmq::message_t emptyMessage(&i, sizeof(i));
             sock.send(emptyMessage, zmq::send_flags::none);
 
-            // wr.release();
+            wr.release();
+
+            first = true;
             continue;
         }
         
