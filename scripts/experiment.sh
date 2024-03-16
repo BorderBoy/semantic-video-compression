@@ -25,7 +25,7 @@ for mode in "${ROI_MODES[@]}"; do
     fi
 
     for br in "${BITRATES[@]}"; do
-        for file in $RECS_PATH/*; do
+        for file in $RECS_PATH/*.yuv; do
             for (( i=0; i<$REPEATS; i++ )); do   
                 base_name=$(basename $file .yuv)
                 
@@ -49,6 +49,7 @@ for mode in "${ROI_MODES[@]}"; do
                 elapsed=$(echo "$end - $start" | bc)
 
                 # extract frames encoded, fps and bitrate from output
+                echo $output
                 if [[ $output =~ $RES_PATTERN ]]; then
                     frames=${BASH_REMATCH[1]}
                     fps=${BASH_REMATCH[2]}
