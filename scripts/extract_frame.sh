@@ -10,7 +10,7 @@ VIDEO=$1
 RESOLUTION="1280x720"
 
 if [[ -z $1 || -z $2 ]]; then
-    echo "Usage: ./extract_frame.sh <video> <frame>"
+    echo "Usage: ./extract_frame.sh <video> <frame_num>"
     exit 1
 fi
 

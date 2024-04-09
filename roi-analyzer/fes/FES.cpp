@@ -17,6 +17,12 @@ FES::FES() {
     p1 = p1.reshape(1, FES_WIDTH*FES_HEIGHT);
 }
 
+/**
+ * Compute the Region of Interest (ROI) of an image. Image can be of any size and must be in BGR color space.
+ * 
+ * @param img The input image
+ * @param roiMap The output ROI map
+*/
 void FES::computeROI(Mat& img, Mat& roiMap) {
     Size roiMapSize = img.size() / 16;
 
@@ -45,35 +51,17 @@ void FES::computeROI(Mat& img, Mat& roiMap) {
     resize(roiMap, roiMap, roiMapSize);
 }
 
-// compute multi scale saliency over an image 
-//
-// @input
-//   img - a given image to process
-//   pScale - precission scale (number of samples) [1xn vector]
-//   sScale - size scale (sampling raduis) [1xn vector]
-//   alpha - attenuation factor [1x1 variable]
-//   sigma0 : standard deviation of kernels in surround [1x1 variable]
-//   sigma1 : standard deviation of kernel in center [1x1 variable]
-//   p1 - P(1|x) [128x171 matrix]
-// @output
-//   saliency - saliency of inputed image
-// 
-// please refer to the following paper for details
-// Rezazadegan Tavakoli H, Rahtu E & Heikkil? J, 
-// "Fast and efficient saliency detection using sparse sampling and kernel density estimation."
-// Proc. Scandinavian Conference on Image Analysis (SCIA 2011), 2011, Ystad, Sweden.
-//
-// The code has been tested on Matlab 2010a (32-bit) running windows. 
-// This code is publicly available for demonstration and educational
-// purposes, any commercial use without permission is strictly prohibited.  
-//
-// Please contact the author in case of any questions, comments, or Bug
-// reports
-//
-// @CopyRight: Hamed Rezazadegan Tavakoli
-// @Contact Email: hrezazad@ee.oulu.fi
-// @date  : 2010
-// @version: 0.1
+/**
+ * Compute the final saliency map of an image
+ * 
+ * @param img The input image in CIELab color space, 3 channels and float values
+ * @param pScale The number of samples
+ * @param sScale Sampling radius
+ * @param alpha Attenuation factor
+ * @param sigma0 Standard deviation of kernels in surround
+ * @param sigma1 Standard deviation of kernel in center
+ * @return The final saliency map
+*/
 Mat FES::computeFinalSaliency(const Mat& img, vector<int> pScale, vector<float> sScale, float alpha, float sigma0, float sigma1) {
     Size imgSize = img.size();
 
@@ -116,32 +104,17 @@ Mat FES::computeFinalSaliency(const Mat& img, vector<int> pScale, vector<float> 
     return saliency;
 }
 
-// calculates the saliency of an image at a given scale
-//
-// @param
-//   img : an image
-//   nSample : number of samples in the center
-//   radius : radius of the circular samples are going to be take from
-//   sigma0 : standard deviation of kernels in surround
-//   sigma1 : standard deviation of kernel in center
-//   ph1 : P(1|x)
-// 
-// please refer to the following paper for details
-// Rezazadegan Tavakoli H, Rahtu E & Heikkil� J, 
-// "Fast and efficient saliency detection using sparse sampling and kernel density estimation."
-// Proc. Scandinavian Conference on Image Analysis (SCIA 2011), 2011, Ystad, Sweden.
-//
-// The code has been tested on Matlab 2010a (32-bit) running windows. 
-// This code is publicly available for demonstration and educational
-// purposes, any commercial use without permission is strictly prohibited.  
-//
-// Please contact the author in case of any questions, comments, or Bug
-// reports
-//
-// @CopyRight: Hamed Rezazadegan Tavakoli
-// @Contact Email: hrezazad@ee.oulu.fi
-// @date  : 2010
-// @version: 0.1
+/**
+ * Compute the saliency map of an image at a given scale
+ * 
+ * @param img The input image in CIELab color space, 3 channels and float values
+ * @param imgT The same image as img but transposed
+ * @param nSample The number of samples
+ * @param radius Sampling radius
+ * @param sigma0 Standard deviation of kernels in surround
+ * @param sigma1 Standard deviation of kernel in center
+ * @return The saliency map at the given scale
+*/
 Mat FES::calculateImageSaliency(const Mat& img, const Mat& imgT, int nSample, float radius, float sigma0, float sigma1) {
     int nrow = img.rows;
     int ncol = img.cols;

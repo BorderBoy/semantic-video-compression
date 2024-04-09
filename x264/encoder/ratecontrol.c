@@ -26,7 +26,7 @@
  * This program is also available under a commercial proprietary license.
  * For more information, contact us at licensing@x264.com.
  * 
- * Changed by Jonas Goos, 2024-01-15
+ * Changed by Jonas Goos, 2024-04-09
  *****************************************************************************/
 
 #undef NDEBUG // always check asserts, the speed effect is far too small to disable them
